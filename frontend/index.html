@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>National Financial Intelligence Platform</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js (pinned version). To work offline, download it into js/ and change this path. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <h1>National Financial Intelligence</h1>
+      <p class="muted">Financial research, analysis, forecasting and scenario simulation</p>
+    </div>
+    <form id="country-form" class="country-form">
+      <label for="country-input">Country (ISO-3 code)</label>
+      <input id="country-input" list="country-list" value="VNM" maxlength="3" pattern="[A-Za-z]{3}"
+             autocomplete="off" spellcheck="false">
+      <button class="btn" type="submit">Load</button>
+      <datalist id="country-list">
+        <option value="VNM">Vietnam</option>
+        <option value="AUS">Australia</option>
+        <option value="USA">United States</option>
+        <option value="CHN">China</option>
+        <option value="JPN">Japan</option>
+        <option value="KOR">South Korea</option>
+        <option value="IND">India</option>
+        <option value="IDN">Indonesia</option>
+        <option value="THA">Thailand</option>
+        <option value="SGP">Singapore</option>
+        <option value="MYS">Malaysia</option>
+        <option value="PHL">Philippines</option>
+        <option value="NZL">New Zealand</option>
+        <option value="GBR">United Kingdom</option>
+        <option value="DEU">Germany</option>
+        <option value="FRA">France</option>
+        <option value="CAN">Canada</option>
+        <option value="BRA">Brazil</option>
+        <option value="MEX">Mexico</option>
+        <option value="ZAF">South Africa</option>
+      </datalist>
+    </form>
+  </header>
+
+  <div id="global-error" class="notice notice-error global-error" role="alert" hidden></div>
+
+  <div class="layout">
+
+    <!-- ===== Navigation ===== -->
+    <nav class="sidebar" aria-label="Sections">
+      <button class="nav-item active" data-view="overview"><span>National Overview</span><small>Country financial indicators</small></button>
+      <button class="nav-item" data-view="industry"><span>Industry Analysis</span><small>Sector contributions</small></button>
+      <button class="nav-item" data-view="capital"><span>Capital Allocation</span><small>Investment and capital flow</small></button>
+      <button class="nav-item" data-view="comparison"><span>Comparison</span><small>Industry and country comparison</small></button>
+      <button class="nav-item" data-view="forecast"><span>Forecasting</span><small>Financial predictions</small></button>
+      <button class="nav-item" data-view="simulation"><span>Simulation</span><small>Investment scenarios</small></button>
+    </nav>
+
+    <main>
+
+      <!-- ================= 1. National Overview ================= -->
+      <section id="view-overview" class="view" data-view="overview">
+        <div class="view-head">
+          <h2>National Overview <span class="country-tag" data-country-tag>VNM</span></h2>
+          <p class="muted">GDP, growth, inflation, unemployment, debt, investment, FDI and trade.</p>
+        </div>
+        <div id="status-overview" class="status" role="status" aria-live="polite"></div>
+        <div id="results-overview" hidden>
+          <div id="overview-kpis" class="kpi-grid"></div>
+          <div class="grid-2">
+            <div class="card"><h3>GDP (current US$)</h3><div class="chart-box"><canvas id="chart-overview-gdp"></canvas></div></div>
+            <div class="card"><h3>Growth, inflation and unemployment</h3><div class="chart-box"><canvas id="chart-overview-rates"></canvas></div></div>
+          </div>
+          <div class="card"><h3>Derived indicators</h3><div id="overview-derived" class="kpi-grid"></div></div>
+          <div class="card"><h3>All indicators</h3><div id="overview-table" class="table-wrap"></div></div>
+          <div id="overview-notes" class="stack"></div>
+        </div>
+      </section>
+
+      <!-- ================= 2. Industry Analysis ================= -->
+      <section id="view-industry" class="view" data-view="industry" hidden>
+        <div class="view-head">
+          <h2>Industry Analysis <span class="country-tag" data-country-tag>VNM</span></h2>
+          <p class="muted">Contribution of broad sectors to the economy (public World Bank data).</p>
+        </div>
+        <div id="status-industry" class="status" role="status" aria-live="polite"></div>
+        <div id="results-industry" hidden>
+          <div class="grid-2">
+            <div class="card"><h3>Sector share of GDP</h3><div class="chart-box"><canvas id="chart-industry-share"></canvas></div></div>
+            <div class="card"><h3>Share of GDP vs share of employment</h3><div class="chart-box"><canvas id="chart-industry-jobs"></canvas></div></div>
+          </div>
+          <div class="card"><h3>Sector details</h3><div id="industry-table" class="table-wrap"></div></div>
+          <div class="card"><h3>Other indicators</h3><div id="industry-derived" class="kpi-grid"></div></div>
+          <div id="industry-notes" class="stack"></div>
+        </div>
+
+        <div class="card">
+          <h3>Analyze your own industry data</h3>
+          <p class="muted">Industry revenue, costs and capital are not published as open data, so you can enter them here.
+            The values below are <strong>illustrative sample data</strong>; replace them with real figures.
+            Employment is the number of workers, so productivity is revenue per worker in your own units.</p>
+          <textarea id="industry-json" class="code-input" rows="12" spellcheck="false" aria-label="Industry data (JSON)"></textarea>
+          <div class="actions"><button id="industry-run" class="btn" type="button">Analyze industries</button></div>
+          <div id="industry-custom-status" class="status" role="status" aria-live="polite"></div>
+          <div id="industry-custom-out" hidden>
+            <div class="chart-box"><canvas id="chart-industry-custom"></canvas></div>
+            <div id="industry-custom-table" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. Capital Allocation ================= -->
+      <section id="view-capital" class="view" data-view="capital" hidden>
+        <div class="view-head">
+          <h2>Capital Allocation <span class="country-tag" data-country-tag>VNM</span></h2>
+          <p class="muted">Investment, government spending, FDI and economy-wide capital efficiency (ICOR).</p>
+        </div>
+        <div id="status-capital" class="status" role="status" aria-live="polite"></div>
+        <div id="results-capital" hidden>
+          <div id="capital-kpis" class="kpi-grid"></div>
+          <div class="grid-2">
+            <div class="card"><h3>Investment, government spending and FDI (% of GDP)</h3><div class="chart-box"><canvas id="chart-capital-rates"></canvas></div></div>
+            <div class="card"><h3>FDI net inflows (US$)</h3><div class="chart-box"><canvas id="chart-capital-fdi"></canvas></div></div>
+          </div>
+          <div class="card">
+            <h3>Derived capital indicators</h3>
+            <div id="capital-derived" class="kpi-grid"></div>
+            <p class="muted small">ICOR = investment rate / GDP growth rate. A lower value means capital produces more growth.</p>
+          </div>
+          <div class="card"><h3>All indicators</h3><div id="capital-table" class="table-wrap"></div></div>
+          <div id="capital-notes" class="stack"></div>
+        </div>
+
+        <div class="card">
+          <h3>Analyze capital allocation across industries</h3>
+          <p class="muted">The split between public and private, and between domestic and foreign capital per industry, is not
+            available as open data. Enter your own figures (shares are percentages from 0 to 100).
+            The values below are <strong>illustrative sample data</strong>.</p>
+          <textarea id="capital-json" class="code-input" rows="10" spellcheck="false" aria-label="Capital data (JSON)"></textarea>
+          <div class="actions"><button id="capital-run" class="btn" type="button">Analyze capital</button></div>
+          <div id="capital-custom-status" class="status" role="status" aria-live="polite"></div>
+          <div id="capital-custom-out" hidden>
+            <div class="grid-2">
+              <div class="card"><h3>Public vs private capital</h3><div class="chart-box"><canvas id="chart-capital-public"></canvas></div></div>
+              <div class="card"><h3>Domestic vs foreign capital</h3><div class="chart-box"><canvas id="chart-capital-foreign"></canvas></div></div>
+            </div>
+            <div id="capital-custom-table" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. Comparison ================= -->
+      <section id="view-comparison" class="view" data-view="comparison" hidden>
+        <div class="view-head">
+          <h2>Comparison</h2>
+          <p class="muted">Compare countries over time and by latest indicators.</p>
+        </div>
+        <form id="cmp-form" class="card controls">
+          <label>Countries (ISO-3, comma separated)
+            <input id="cmp-countries" value="VNM,AUS,USA" spellcheck="false" autocomplete="off">
+          </label>
+          <label>Indicator
+            <select id="cmp-indicator"></select>
+          </label>
+          <label>From year
+            <input id="cmp-from" type="number" min="1960" max="2100">
+          </label>
+          <button class="btn" type="submit">Compare</button>
+        </form>
+        <div id="status-comparison" class="status" role="status" aria-live="polite"></div>
+        <div id="results-comparison" hidden>
+          <div class="card"><h3 id="cmp-chart-title">Indicator over time</h3><div class="chart-box tall"><canvas id="chart-comparison"></canvas></div></div>
+          <div class="card">
+            <h3>Country comparison (latest available values)</h3>
+            <div id="cmp-warnings" class="stack"></div>
+            <div id="cmp-table" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. Forecasting ================= -->
+      <section id="view-forecast" class="view" data-view="forecast" hidden>
+        <div class="view-head">
+          <h2>Forecasting <span class="country-tag" data-country-tag>VNM</span></h2>
+          <p class="muted">Statistical extrapolation of historical data. Not a guaranteed prediction.</p>
+        </div>
+        <form id="forecast-form" class="card controls">
+          <label>Forecast type
+            <select id="forecast-type">
+              <option value="gdp">GDP</option>
+              <option value="industry">Industry</option>
+              <option value="investment">Investment / FDI</option>
+            </select>
+          </label>
+          <label>Indicator
+            <select id="forecast-indicator"></select>
+          </label>
+          <label>Model
+            <select id="forecast-model"><option value="">Default for this type</option></select>
+          </label>
+          <label>Years ahead
+            <input id="forecast-horizon" type="number" min="1" max="20" value="5">
+          </label>
+          <label class="check"><input id="forecast-save" type="checkbox"> Save result to results/</label>
+          <button class="btn" type="submit">Run forecast</button>
+          <p id="forecast-hint" class="muted small full"></p>
+        </form>
+        <div id="status-forecast" class="status" role="status" aria-live="polite"></div>
+        <div id="results-forecast" hidden>
+          <div id="forecast-saved" class="stack"></div>
+          <div id="forecast-kpis" class="kpi-grid"></div>
+          <div class="card"><h3 id="forecast-title">Forecast</h3><div class="chart-box tall"><canvas id="chart-forecast"></canvas></div></div>
+          <div class="card"><h3>Forecasted values</h3><div id="forecast-table" class="table-wrap"></div></div>
+          <div id="forecast-notes" class="stack"></div>
+        </div>
+      </section>
+
+      <!-- ================= 6. Simulation ================= -->
+      <section id="view-simulation" class="view" data-view="simulation" hidden>
+        <div class="view-head">
+          <h2>Simulation <span class="country-tag" data-country-tag>VNM</span></h2>
+          <p class="muted">Change investment assumptions and observe the modelled impact.</p>
+        </div>
+        <div id="status-simulation" class="status" role="status" aria-live="polite"></div>
+        <div id="results-simulation" hidden>
+          <div class="card">
+            <h3>Baseline (starting point)</h3>
+            <div id="sim-baseline-kpis" class="kpi-grid"></div>
+            <div id="sim-baseline-table" class="table-wrap"></div>
+            <div id="sim-baseline-notes" class="stack"></div>
+          </div>
+        </div>
+
+        <form id="sim-form" class="card">
+          <h3>Scenario</h3>
+          <div class="controls">
+            <label>Preset scenario
+              <select id="sim-preset"><option value="">Custom adjustments</option></select>
+            </label>
+            <label>Funding
+              <select id="sim-funding">
+                <option value="">Default (preset or additional)</option>
+                <option value="additional">Additional capital</option>
+                <option value="reallocate">Reallocate within total investment</option>
+              </select>
+            </label>
+            <label>Years to simulate
+              <input id="sim-horizon" type="number" min="1" max="30" value="10">
+            </label>
+            <label class="check"><input id="sim-save" type="checkbox"> Save result to results/</label>
+          </div>
+          <p id="sim-preset-hint" class="muted small"></p>
+
+          <h4>Investment adjustments <span class="muted small">(% change of each sector's investment)</span></h4>
+          <div id="sim-adjustments" class="stack"></div>
+          <div class="actions"><button id="sim-add" class="btn btn-ghost" type="button">Add adjustment</button></div>
+
+          <details class="advanced">
+            <summary>Advanced assumptions (leave empty to use the baseline values)</summary>
+            <div class="controls">
+              <label>Capital depreciation (% per year)<input id="sim-depreciation" type="number" step="0.5" min="0" max="50" placeholder="5"></label>
+              <label>Baseline GDP growth (% per year)<input id="sim-growth" type="number" step="0.1" min="-20" max="30"></label>
+              <label>ICOR (capital-output ratio)<input id="sim-icor" type="number" step="0.1" min="0.5" max="20"></label>
+            </div>
+          </details>
+
+          <div class="actions"><button class="btn" type="submit">Run simulation</button></div>
+          <div id="status-sim-run" class="status" role="status" aria-live="polite"></div>
+        </form>
+
+        <div id="sim-output" hidden>
+          <div id="sim-disclaimer" class="stack"></div>
+          <div class="card">
+            <h3 id="sim-title">Result</h3>
+            <p id="sim-subtitle" class="muted"></p>
+            <div id="sim-kpis" class="kpi-grid"></div>
+          </div>
+          <div class="grid-2">
+            <div class="card"><h3>Impact over time (% vs baseline)</h3><div class="chart-box"><canvas id="chart-sim-impact"></canvas></div></div>
+            <div class="card"><h3>Impact by sector at the end of the period (%)</h3><div class="chart-box"><canvas id="chart-sim-sectors"></canvas></div></div>
+          </div>
+          <div class="card"><h3>Sector impacts</h3><div id="sim-sector-table" class="table-wrap"></div></div>
+          <div class="card"><details><summary>Year-by-year results</summary><div id="sim-yearly-table" class="table-wrap"></div></details></div>
+          <div class="card"><details><summary>Assumptions used</summary><div id="sim-assumptions"></div></details></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="footer muted small">
+    Data: World Bank and IMF public APIs. Forecasts and simulations are assumption-based models, not predictions of real outcomes.
+  </footer>
+</body>
+</html>
